@@ -2,6 +2,7 @@ package micro.test.GraphQLExample.web;
 
 import lombok.AllArgsConstructor;
 import micro.test.GraphQLExample.DTOmapper.Mapper;
+import micro.test.GraphQLExample.DTOmapper.TransformType;
 import micro.test.GraphQLExample.dto.ProductReqDTO;
 import micro.test.GraphQLExample.entities.Category;
 import micro.test.GraphQLExample.entities.Product;
@@ -13,7 +14,6 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
@@ -23,6 +23,7 @@ public class ProductGraphQL_Controller {
     private CategoryRepo categoryRepo ;
     private Mapper mapper ;
 
+    /** Select **/
     @QueryMapping
     public List<Product> productsList(){
         return productRepo.findAll();
@@ -46,8 +47,21 @@ public class ProductGraphQL_Controller {
         return categoryRepo.findById(id).orElseThrow(() -> new RuntimeException("category of (" + id + ") not founded"));
     }
 
+    /** insert **/
     @MutationMapping
-    public Product saveProduct(@Argument ProductReqDTO ProductRequest){
-        return productRepo.save(mapper.fromProductReqDto(ProductRequest));
+    public Product saveProduct(@Argument ProductReqDTO product){
+        return productRepo.save(mapper.fromProductReqDto(product ,TransformType.INSERT));
+    }
+
+    /** update **/
+    @MutationMapping
+    public Product updateProduct(@Argument ProductReqDTO product){
+        return productRepo.save(mapper.fromProductReqDto(product , TransformType.UPDATE));
+    }
+
+    /** delete **/
+    @MutationMapping
+    public void deleteProduct(@Argument String productId){
+         productRepo.deleteById(productId);
     }
 }

@@ -8,19 +8,26 @@ import micro.test.GraphQLExample.reposotories.CategoryRepo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @AllArgsConstructor
 public class MapperImpl implements Mapper {
     private CategoryRepo categoryRepo;
     @Override
-    public Product fromProductReqDto(ProductReqDTO productReqDTO) {
+    public Product fromProductReqDto(ProductReqDTO productReqDTO , TransformType type) {
         Product product = new Product();
-        Long categoryId = productReqDTO.getCategoryId();
-        Category category = categoryRepo.findById(categoryId)
-                                        .orElseThrow(() -> new RuntimeException("category of id +(" + categoryId + ") not found"));
-        product.setCategory(category);
         BeanUtils.copyProperties(productReqDTO , product);
-        return null;
+        if(type.equals(TransformType.INSERT)){
+            product.setId(UUID.randomUUID().toString());
+            // we can skip this because BeanUtils has already copied the id
+        } else if (type.equals(TransformType.UPDATE)) {
+            product.setId(productReqDTO.getId());
+        }
+        Long categoryId = productReqDTO.getCategoryId();
+        Category category = categoryRepo.findById(categoryId).orElse(null);
+        product.setCategory(category);
+        return product;
     }
 
 }
